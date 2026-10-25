@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale, getT } from '@/lib/i18n'
-import { taka } from '@/lib/format'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -54,48 +53,17 @@ async function Landing() {
   const locale = await getLocale()
   return (
     <div className="space-y-14">
-      <section className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr]">
-        <div>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl md:leading-tight">{t('heroTitle')}</h1>
-          <p className="mt-4 max-w-prose text-lg text-muted">{t('heroSub')}</p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Link href="/signup" className="btn-primary">
-              {t('ctaStart')}
-            </Link>
-            <Link href="/login" className="btn-ghost">
-              {t('ctaLogin')}
-            </Link>
-          </div>
+      <section className="max-w-3xl py-4 md:py-10">
+        <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-6xl md:leading-tight">{t('heroTitle')}</h1>
+        <p className="mt-5 max-w-prose text-lg text-muted">{t('heroSub')}</p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link href="/signup" className="btn-primary">
+            {t('ctaStart')}
+          </Link>
+          <Link href="/login" className="btn-ghost">
+            {t('ctaLogin')}
+          </Link>
         </div>
-
-        <article aria-label={t('exampleTag')} className="border border-line bg-surface shadow-[6px_6px_0_0_#F4B400]">
-          <div className="border-b border-dashed border-line p-5">
-            <p className="text-sm font-semibold text-brand">{t('exampleTag')}</p>
-            <h2 className="mt-1 text-xl font-bold">{t('exampleTitle')}</h2>
-            <p className="mt-1 flex items-center gap-1 text-sm text-muted">
-              <MapPin aria-hidden size={14} /> {t('examplePlace')}
-            </p>
-          </div>
-          <dl className="divide-y divide-dashed divide-line px-5">
-            <div className="flex items-baseline justify-between gap-4 bg-marigold-soft/70 py-3 -mx-5 px-5">
-              <dt className="font-semibold">{t('feeTask')}</dt>
-              <dd className="text-xl font-bold">{taka(200, locale)}</dd>
-            </div>
-            <div className="flex justify-between gap-4 py-3 text-muted">
-              <dt>{t('feePrint')}</dt>
-              <dd>{taka(50, locale)}</dd>
-            </div>
-            <div className="flex justify-between gap-4 py-3 text-muted">
-              <dt>{t('feeOther')}</dt>
-              <dd>{taka(30, locale)}</dd>
-            </div>
-            <div className="flex justify-between gap-4 py-3 font-semibold">
-              <dt>{t('feeTotal')}</dt>
-              <dd>{taka(280, locale)}</dd>
-            </div>
-          </dl>
-          <p className="border-t border-dashed border-line p-4 text-sm text-muted">{t('exampleNote')}</p>
-        </article>
       </section>
 
       <section>
