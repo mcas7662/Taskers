@@ -3,11 +3,7 @@ import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale, getT } from '@/lib/i18n'
-<<<<<<< HEAD
-=======
-import { taka } from '@/lib/format'
 import TaskCard, { type TaskCardData } from '@/components/TaskCard'
->>>>>>> 5f33ed3 (Add task posting, offers, chat, payments flow and admin reports)
 
 export default async function HomePage() {
   const supabase = await createClient()
