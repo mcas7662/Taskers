@@ -1,9 +1,11 @@
+// taskers/app/profile/locations/page.tsx
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { getT, type TKey } from '@/lib/i18n'
+import { getDict, getLocale, getT, type TKey } from '@/lib/i18n'
+import type { District, Division } from '@/lib/types'
 import LocationForm from '@/components/LocationForm'
 import DeleteLocationButton from '@/components/DeleteLocationButton'
 import { addLocation, deleteLocation } from './actions'
@@ -15,6 +17,8 @@ const MAX = 3
 
 export default async function SavedLocationsPage() {
   const t = await getT()
+  const locale = await getLocale()
+  const dict = await getDict('loc_', 'adr_', 'sp_')
   const supabase = await createClient()
   const {
     data: { user },
@@ -28,6 +32,10 @@ export default async function SavedLocationsPage() {
     .eq('is_active', true)
     .order('created_at', { ascending: true })
 
+  const [{ data: divisions }, { data: districts }] = await Promise.all([
+    supabase.from('bd_divisions').select('id, name_en, name_bn').order('name_en'),
+    supabase.from('bd_districts').select('id, division_id, name_en, name_bn').order('name_en'),
+  ])
   const list = places ?? []
   const labelText = (l: string) => t(`label_${l}` as TKey)
 
@@ -73,24 +81,11 @@ export default async function SavedLocationsPage() {
       {list.length < MAX ? (
         <LocationForm
           action={addLocation}
-          labels={{
-            addLocation: t('addLocation'),
-            labelField: t('labelField'),
-            customLabel: t('customLabel'),
-            locality: t('locality'),
-            useGps: t('useGps'),
-            gpsWhy: t('gpsWhy'),
-            gpsWorking: t('gpsWorking'),
-            gpsDenied: t('gpsDenied'),
-            gpsUnavailable: t('gpsUnavailable'),
-            gpsDone: t('gpsDone'),
-            latitude: t('latitude'),
-            longitude: t('longitude'),
-            manualNote: t('manualNote'),
-            savePlace: t('savePlace'),
-            saved: t('saved'),
-            options: LABELS.map((l) => ({ value: l, label: labelText(l) })),
-          }}
+          dict={dict}
+          lang={locale}
+          options={LABELS.map((l) => ({ value: l, label: labelText(l) }))}
+          divisions={(divisions ?? []) as Division[]}
+          districts={(districts ?? []) as District[]}
         />
       ) : (
         <p className="border-l-4 border-marigold bg-marigold-soft p-3 text-sm">{t('limitReached')}</p>

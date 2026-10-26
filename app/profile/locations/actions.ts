@@ -1,3 +1,4 @@
+// taskers/app/profile/locations/actions.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
@@ -15,7 +16,10 @@ const schema = z.object({
   locality_name: z.string().trim().max(120).optional(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  source: z.enum(['gps', 'manual']),
+  source: z.enum(['gps', 'manual', 'geocoded']),
+  division_id: z.number().int().positive().optional(),
+  district_id: z.number().int().positive().optional(),
+  upazila_name: z.string().trim().max(80).optional(),
   accuracy_m: z.number().min(0).max(100000).optional(),
 })
 
@@ -46,6 +50,9 @@ export async function addLocation(_prev: LocationState, formData: FormData): Pro
     longitude: numeric(formData.get('longitude')),
     source: text(formData.get('source')) ?? 'manual',
     accuracy_m: numeric(formData.get('accuracy_m')),
+    division_id: numeric(formData.get('division_id')),
+    district_id: numeric(formData.get('district_id')),
+    upazila_name: text(formData.get('upazila_name')),
   })
   if (!parsed.success) return { error: t('errInvalid') }
 

@@ -1,7 +1,13 @@
+// taskers/app/page.tsx
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getLocale, getT } from '@/lib/i18n'
+<<<<<<< HEAD
+=======
+import { taka } from '@/lib/format'
+import TaskCard, { type TaskCardData } from '@/components/TaskCard'
+>>>>>>> 5f33ed3 (Add task posting, offers, chat, payments flow and admin reports)
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -15,11 +21,24 @@ export default async function HomePage() {
 async function FindTasks({ userId }: { userId: string }) {
   const t = await getT()
   const supabase = await createClient()
-  const { count } = await supabase
-    .from('user_saved_locations')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('is_active', true)
+
+  const [{ count }, { data: tasks }, { data: myOffers }] = await Promise.all([
+    supabase.from('user_saved_locations').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_active', true),
+    supabase
+      .from('tasks')
+      .select(
+        'id, title, place_name, upazila_name, task_fee, expense_estimate, status, created_at, category:task_categories(name_en, name_bn), poster:profiles!tasks_poster_id_fkey(full_name, rating_avg, rating_count)'
+      )
+      .eq('status', 'open')
+      .gt('expires_at', new Date().toISOString())
+      .neq('poster_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50),
+    supabase.from('task_offers').select('task_id, status').eq('tasker_id', userId),
+  ])
+
+  const offered = new Map((myOffers ?? []).map((o) => [o.task_id as string, o.status as string]))
+  const list = (tasks ?? []) as unknown as TaskCardData[]
 
   return (
     <div className="space-y-6">
@@ -40,10 +59,18 @@ async function FindTasks({ userId }: { userId: string }) {
         </aside>
       )}
 
-      <section className="border border-dashed border-line bg-surface px-6 py-12 text-center">
-        <h2 className="text-lg font-semibold">{t('emptyTasksTitle')}</h2>
-        <p className="mx-auto mt-2 max-w-md text-muted">{t('emptyTasksBody')}</p>
-      </section>
+      {list.length === 0 ? (
+        <section className="border border-dashed border-line bg-surface px-6 py-12 text-center">
+          <h2 className="text-lg font-semibold">{t('emptyTasksTitle')}</h2>
+          <p className="mx-auto mt-2 max-w-md text-muted">{t('find_emptyBody')}</p>
+        </section>
+      ) : (
+        <ul className="space-y-3">
+          {list.map((task) => (
+            <TaskCard key={task.id} task={task} badge={offered.has(task.id) ? 'find_offered' : undefined} />
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

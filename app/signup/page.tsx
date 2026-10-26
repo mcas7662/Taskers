@@ -1,3 +1,4 @@
+// taskers/app/signup/page.tsx
 import type { Metadata } from 'next'
 import AuthForm from '@/components/AuthForm'
 import { signup } from '@/app/auth/actions'
@@ -15,6 +16,8 @@ export default async function SignupPage() {
         title: t('signup'),
         submit: t('signup'),
         fullName: t('fullName'),
+        dob: t('dob'),
+        dobHint: t('signupDobHint'),
         email: t('email'),
         password: t('password'),
         passwordHint: t('passwordHint'),

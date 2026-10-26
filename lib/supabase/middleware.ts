@@ -1,7 +1,8 @@
+// taskers/lib/supabase/middleware.ts
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PROTECTED = ['/profile', '/post', '/tasks', '/messages']
+const PROTECTED = ['/profile', '/post', '/tasks', '/messages', '/task', '/chat', '/notifications', '/admin', '/u']
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })

@@ -1,14 +1,17 @@
+<!-- taskers/README.md -->
 # Taskers
 
 Location-based marketplace for small physical errands (Bangladesh first). Next.js 15 (App Router) + TypeScript + Tailwind + Supabase (Auth, Postgres, PostGIS).
 
 ## Status
 
-Working now: email signup/login/logout, session refresh middleware, profile (name, private date of birth),
-Saved Places (max 3, enforced in the database), Bangla/English toggle, mobile bottom navigation, PWA manifest.
+Working: email signup (real name + birth date, 18+), profile + private address, Saved Places (max 3) with Google Maps picker,
+post task (fee + expenses, city 1 km / village 5 km), nearby notifications, poster searches helpers (radius or area) and
+notifies all/selected, offers (accept price or counter), auto-decline of other offers, chat (realtime), terms (expenses + time),
+prepay with screenshot, helper confirms payment, timer, extension requests, completion proof photos, poster confirmation,
+reviews, reports + admin warn/ban, in-app notifications.
 
-Not built yet (pages show "Coming soon"): posting tasks, task discovery, offers, chat, payments, reviews,
-notifications, admin dashboard, phone OTP, map picker, service worker / web push.
+Not built yet: phone OTP, NID verification, web push (in-app notifications only), full upazila list (typed as text for now), escrow.
 
 ## Run locally
 
@@ -29,7 +32,17 @@ In the Supabase dashboard (Authentication > URL Configuration) set Site URL to y
 and add `http://localhost:3000/auth/callback` and `<your-url>/auth/callback` to Redirect URLs.
 If email confirmation is on, users must click the emailed link before they can log in.
 
+## Make yourself admin (once)
+
+Supabase SQL editor: `insert into public.user_roles(user_id, role) select id, 'admin' from auth.users where email = 'YOUR_EMAIL';`
+Then open Profile > Reports.
+
 ## Security notes
+
+- Every write goes through audited Postgres functions (`create_task`, `submit_offer`, `mark_paid`, ...). Browsers cannot insert/update tasks, offers, chats or ratings directly.
+- Chats are readable by the two people only. An admin can read a chat only after a report exists for it.
+- Proof photos live in the private `task-proofs` bucket; only the two parties (or admin with a report) can open them.
+- Helpers' exact coordinates are never returned; posters only see distance bands (500 m, 1 km, ...).
 
 - Only the public URL and publishable key are used in the app. Never commit a service_role/secret key.
 - Authorization is enforced by Row Level Security and database triggers, not only by UI checks.

@@ -1,3 +1,4 @@
+// taskers/components/AuthForm.tsx
 'use client'
 
 import Link from 'next/link'
@@ -15,6 +16,8 @@ type Props = {
     password: string
     passwordHint?: string
     fullName?: string
+    dob?: string
+    dobHint?: string
     switchPrompt: string
     switchLink: string
     switchHref: string
@@ -35,6 +38,13 @@ export default function AuthForm({ mode, action, next, labels }: Props) {
               {labels.fullName}
             </label>
             <input id="full_name" name="full_name" required minLength={2} maxLength={100} autoComplete="name" className="field" />
+          </div>
+        )}
+        {mode === 'signup' && (
+          <div>
+            <label htmlFor="date_of_birth" className="mb-1 block text-sm font-semibold">{labels.dob}</label>
+            <input id="date_of_birth" name="date_of_birth" type="date" required max={new Date(Date.now() - 18 * 365.25 * 86400000).toISOString().slice(0, 10)} autoComplete="bday" className="field" />
+            <p className="mt-1 text-sm text-muted">{labels.dobHint}</p>
           </div>
         )}
         <div>

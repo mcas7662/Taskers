@@ -1,8 +1,10 @@
+// taskers/lib/i18n.ts
 import { cookies } from 'next/headers'
+import { enExtra, bnExtra } from './i18n-extra'
 
 export type Locale = 'bn' | 'en'
 
-const en = {
+const enBase = {
   appName: 'Taskers',
   tagline: 'Small errands, done by people nearby',
   navHome: 'Find tasks',
@@ -99,9 +101,10 @@ const en = {
   footer: 'Taskers connects people. Always check that the office or shop allows someone else to do the task.',
 } as const
 
+const en = { ...enBase, ...enExtra } as const
 type Key = keyof typeof en
 
-const bn: Record<Key, string> = {
+const bnBase: Record<keyof typeof enBase, string> = {
   appName: 'Taskers',
   tagline: 'ছোট ছোট কাজ, আশেপাশের মানুষের হাতে',
   navHome: 'কাজ খুঁজুন',
@@ -198,6 +201,8 @@ const bn: Record<Key, string> = {
   footer: 'Taskers শুধু মানুষকে যুক্ত করে। কাজটি অন্য কেউ করতে পারবে কি না, তা অফিস বা দোকানের নিয়মে আগে নিশ্চিত করুন।',
 }
 
+const bn: Record<Key, string> = { ...bnBase, ...bnExtra }
+
 export const dictionaries = { en, bn }
 export type TKey = Key
 export type T = (key: Key) => string
@@ -210,4 +215,13 @@ export async function getLocale(): Promise<Locale> {
 export async function getT(): Promise<T> {
   const locale = await getLocale()
   return (key) => dictionaries[locale][key]
+}
+
+/** Subset of the dictionary (keys starting with any prefix) to hand to client components. */
+export async function getDict(...prefixes: string[]): Promise<Record<string, string>> {
+  const locale = await getLocale()
+  const all = dictionaries[locale] as Record<string, string>
+  const out: Record<string, string> = {}
+  for (const k of Object.keys(all)) if (prefixes.some((p) => k.startsWith(p))) out[k] = all[k]
+  return out
 }

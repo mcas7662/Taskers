@@ -1,3 +1,4 @@
+// taskers/app/auth/actions.ts
 'use server'
 
 import { headers } from 'next/headers'
@@ -18,6 +19,16 @@ const signupSchema = z.object({
   full_name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(254),
   password: z.string().min(8).max(200),
+  date_of_birth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .refine((d) => {
+      const born = Date.parse(d)
+      if (Number.isNaN(born)) return false
+      const min = new Date()
+      min.setFullYear(min.getFullYear() - 18)
+      return born <= min.getTime() && born > Date.parse('1900-01-01')
+    }),
 })
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -41,6 +52,7 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
     full_name: formData.get('full_name'),
     email: formData.get('email'),
     password: formData.get('password'),
+    date_of_birth: formData.get('date_of_birth'),
   })
   if (!parsed.success) return { error: t('errSignup') }
 
@@ -52,7 +64,7 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.full_name },
+      data: { full_name: parsed.data.full_name, date_of_birth: parsed.data.date_of_birth },
       emailRedirectTo: origin ? `${origin}/auth/callback` : undefined,
     },
   })
