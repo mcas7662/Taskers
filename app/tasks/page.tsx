@@ -9,7 +9,7 @@ import TaskCard, { type TaskCardData } from '@/components/TaskCard'
 export const metadata: Metadata = { title: 'My tasks' }
 
 const SELECT =
-  'id, title, place_name, upazila_name, task_fee, expense_estimate, status, created_at, category:task_categories(name_en, name_bn)'
+  'id, title, place_name, upazila_name, task_fee, expense_estimate, status, created_at, custom_category, category:task_categories(name_en, name_bn)'
 
 export default async function MyTasksPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const t = await getT()

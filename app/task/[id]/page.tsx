@@ -73,7 +73,7 @@ export default async function TaskPage({
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={expired ? 'cancelled' : task.status} />
-          {cat && <span className="text-sm font-semibold text-brand">{locale === 'bn' ? cat.name_bn : cat.name_en}</span>}
+          {(task.custom_category || cat) && <span className="text-sm font-semibold text-brand">{task.custom_category || (locale === 'bn' ? cat.name_bn : cat.name_en)}</span>}
         </div>
         <h1 className="text-3xl font-bold leading-tight">{task.title}</h1>
         <p className="flex items-center gap-1 text-sm text-muted"><Clock size={14} aria-hidden /> {timeAgo(task.created_at, locale)} · {t('task_expires')} {fmtDateTime(task.expires_at, locale)}</p>

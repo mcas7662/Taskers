@@ -8,7 +8,7 @@ import TaskerSearch from '@/components/TaskerSearch'
 import { searchTaskers, sendInvites } from './actions'
 import type { District, Division } from '@/lib/types'
 
-export const metadata: Metadata = { title: 'Find helpers' }
+export const metadata: Metadata = { title: 'Find Taskers' }
 
 export default async function NotifyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

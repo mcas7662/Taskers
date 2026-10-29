@@ -23,7 +23,7 @@ async function FindTasks({ userId }: { userId: string }) {
     supabase
       .from('tasks')
       .select(
-        'id, title, place_name, upazila_name, task_fee, expense_estimate, status, created_at, category:task_categories(name_en, name_bn), poster:profiles!tasks_poster_id_fkey(full_name, rating_avg, rating_count)'
+        'id, title, place_name, upazila_name, task_fee, expense_estimate, status, created_at, custom_category, category:task_categories(name_en, name_bn), poster:profiles!tasks_poster_id_fkey(full_name, rating_avg, rating_count)'
       )
       .eq('status', 'open')
       .gt('expires_at', new Date().toISOString())

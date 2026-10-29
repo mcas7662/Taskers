@@ -15,6 +15,7 @@ export type TaskCardData = {
   expense_estimate: number
   status: string
   created_at: string
+  custom_category?: string | null
   category?: { name_en: string; name_bn: string } | null
   poster?: { full_name: string; rating_avg: number; rating_count: number } | null
 }
@@ -27,8 +28,8 @@ export default async function TaskCard({ task, badge, showStatus = false }: { ta
       <Link href={`/task/${task.id}`} className="block border border-line bg-surface p-4 active:bg-brand-soft">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {task.category && (
-              <p className="mb-1 text-xs font-semibold text-brand">{locale === 'bn' ? task.category.name_bn : task.category.name_en}</p>
+            {(task.custom_category || task.category) && (
+              <p className="mb-1 text-xs font-semibold text-brand">{task.custom_category || (locale === 'bn' ? task.category!.name_bn : task.category!.name_en)}</p>
             )}
             <h3 className="text-lg font-bold leading-snug">{task.title}</h3>
           </div>

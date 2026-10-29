@@ -19,12 +19,15 @@ export default async function PostPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/post')
 
-  const [{ data: cats }, { data: divisions }, { data: districts }, { data: prof }] = await Promise.all([
-    supabase.from('task_categories').select('id, name_en, name_bn, requires_institution_permission').eq('is_active', true).order('sort_order'),
+  const [{ data: cats }, { data: divisions }, { data: districts }] = await Promise.all([
+    supabase.from('task_categories').select('id, slug, name_en, name_bn, requires_institution_permission').eq('is_active', true).order('sort_order'),
     supabase.from('bd_divisions').select('id, name_en, name_bn').order('name_en'),
-    supabase.from('bd_districts').select('id, division_id, name_en, name_bn').order('name_en'),
-    supabase.from('profiles').select('division_id, district_id, upazila_name').eq('id', user.id).single(),
+    supabase.from('bd_districts').select('id, division_id, name_en, name_bn, lat, lng').order('name_en'),
   ])
+  // "Other (write my own)" is the last dropdown option; it is filed under the general "other" category.
+  const list = cats ?? []
+  const otherCategoryId = list.find((c) => c.slug === 'other')?.id ?? null
+  const rows = districts ?? []
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
@@ -36,14 +39,17 @@ export default async function PostPage() {
         action={createTask}
         dict={dict}
         lang={locale}
-        categories={(cats ?? []).map((c) => ({
-          id: c.id,
-          label: locale === 'bn' ? c.name_bn : c.name_en,
-          requires_permission: c.requires_institution_permission,
-        }))}
+        categories={list
+          .filter((c) => c.slug !== 'other')
+          .map((c) => ({
+            id: c.id,
+            label: locale === 'bn' ? c.name_bn : c.name_en,
+            requires_permission: c.requires_institution_permission,
+          }))}
         divisions={(divisions ?? []) as Division[]}
-        districts={(districts ?? []) as District[]}
-        defaults={{ division_id: prof?.division_id, district_id: prof?.district_id, upazila_name: prof?.upazila_name }}
+        districts={rows.map(({ id, division_id, name_en, name_bn }) => ({ id, division_id, name_en, name_bn })) as District[]}
+        districtRefs={rows.map((x) => ({ id: x.id, lat: x.lat as number | null, lng: x.lng as number | null }))}
+        otherCategoryId={otherCategoryId}
       />
     </div>
   )

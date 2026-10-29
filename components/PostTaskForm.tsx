@@ -2,12 +2,13 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import LocationPicker from './LocationPicker'
+import TaskLocationPicker from './TaskLocationPicker'
 import AddressFields from './AddressFields'
 import type { PostState } from '@/app/post/actions'
 import type { District, Division } from '@/lib/types'
 
 type Cat = { id: number; label: string; requires_permission: boolean }
+type DistrictRef = { id: number; lat: number | null; lng: number | null }
 type Props = {
   action: (prev: PostState, fd: FormData) => Promise<PostState>
   dict: Record<string, string>
@@ -15,18 +16,23 @@ type Props = {
   categories: Cat[]
   divisions: Division[]
   districts: District[]
-  defaults: { division_id?: number | null; district_id?: number | null; upazila_name?: string | null; post_office?: string | null; village?: string | null }
+  districtRefs: DistrictRef[]
+  /** Category used when the poster writes their own type of task. */
+  otherCategoryId: number | null
 }
 
 const EXPIRY = [6, 24, 48, 72, 168]
+const CUSTOM = 'custom'
 
-export default function PostTaskForm({ action, dict, lang, categories, divisions, districts, defaults }: Props) {
+export default function PostTaskForm({ action, dict, lang, categories, divisions, districts, districtRefs, otherCategoryId }: Props) {
   const d = (k: string) => dict[k] ?? k
   const [state, formAction, pending] = useActionState(action, undefined)
   const [cat, setCat] = useState('')
+  const [districtId, setDistrictId] = useState('')
   const [area, setArea] = useState<'urban' | 'rural'>('urban')
   const [fee, setFee] = useState('')
   const [exp, setExp] = useState('')
+  const isCustom = cat === CUSTOM
   const needsPermission = categories.find((c) => String(c.id) === cat)?.requires_permission ?? false
   const total = (Number(fee) || 0) + (Number(exp) || 0)
   const fmt = (n: number) => '৳' + n.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US')
@@ -35,12 +41,20 @@ export default function PostTaskForm({ action, dict, lang, categories, divisions
     <form action={formAction} className="space-y-6">
       <section className="space-y-4">
         <div>
-          <label htmlFor="category_id" className="mb-1 block text-sm font-semibold">{d('post_category')}</label>
-          <select id="category_id" name="category_id" required value={cat} onChange={(e) => setCat(e.target.value)} className="field">
+          <label htmlFor="category_choice" className="mb-1 block text-sm font-semibold">{d('post_category')}</label>
+          <select id="category_choice" required value={cat} onChange={(e) => setCat(e.target.value)} className="field">
             <option value="">{d('adr_choose')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            {otherCategoryId != null && <option value={CUSTOM}>{d('post_categoryCustom')}</option>}
           </select>
+          <input type="hidden" name="category_id" value={isCustom ? (otherCategoryId ?? '') : cat} />
         </div>
+        {isCustom && (
+          <div>
+            <label htmlFor="custom_category" className="mb-1 block text-sm font-semibold">{d('post_customLabel')}</label>
+            <input id="custom_category" name="custom_category" required minLength={3} maxLength={60} placeholder={d('post_customHint')} className="field" />
+          </div>
+        )}
         <div>
           <label htmlFor="title" className="mb-1 block text-sm font-semibold">{d('post_title')}</label>
           <input id="title" name="title" required minLength={3} maxLength={120} placeholder={d('post_titleHint')} className="field" />
@@ -53,8 +67,9 @@ export default function PostTaskForm({ action, dict, lang, categories, divisions
 
       <section className="space-y-3 border-t border-dashed border-line pt-5">
         <h2 className="text-lg font-bold">{d('post_where')}</h2>
-        <LocationPicker dict={dict} lang={lang} />
-        <AddressFields dict={dict} lang={lang} divisions={divisions} districts={districts} defaults={defaults} required />
+        <TaskLocationPicker dict={dict} lang={lang} districtId={districtId} districtRefs={districtRefs} />
+        <AddressFields dict={dict} lang={lang} divisions={divisions} districts={districts} withDetail={false} required onDistrictChange={setDistrictId} />
+        <p className="-mt-1 text-sm text-muted">{d('post_upazilaHint')}</p>
         <fieldset>
           <legend className="mb-1 text-sm font-semibold">{d('post_areaType')}</legend>
           <div className="grid grid-cols-2 gap-2">

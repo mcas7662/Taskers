@@ -47,3 +47,9 @@ Then open Profile > Reports.
 - Only the public URL and publishable key are used in the app. Never commit a service_role/secret key.
 - Authorization is enforced by Row Level Security and database triggers, not only by UI checks.
 - Saved coordinates are readable only by their owner.
+
+## Posting a task: location
+
+Posters do not use GPS or a map. They paste what Google Maps gives them (coordinates, a Plus Code like `H9MV+4W5`, or a Maps link) into one box;
+`lib/location-parse.ts` reads it (short Plus Codes use the chosen district's `bd_districts.lat/lng` as reference). Only division, district and upazila are asked.
+"Other" in the task type asks for a typed type (`tasks.custom_category`). Migration: `supabase/migrations/20261030000000_post_location_paste_and_custom_category.sql` (already applied).

@@ -12,9 +12,10 @@ type Props = {
   defaults?: { division_id?: number | null; district_id?: number | null; upazila_name?: string | null; post_office?: string | null; village?: string | null }
   withDetail?: boolean // post office + village
   required?: boolean
+  onDistrictChange?: (districtId: string) => void
 }
 
-export default function AddressFields({ dict, lang, divisions, districts, defaults, withDetail = true, required = false }: Props) {
+export default function AddressFields({ dict, lang, divisions, districts, defaults, withDetail = true, required = false, onDistrictChange }: Props) {
   const d = (k: string) => dict[k] ?? k
   const [div, setDiv] = useState<string>(defaults?.division_id ? String(defaults.division_id) : '')
   const [dist, setDist] = useState<string>(defaults?.district_id ? String(defaults.district_id) : '')
@@ -27,7 +28,7 @@ export default function AddressFields({ dict, lang, divisions, districts, defaul
         <div>
           <label htmlFor="division_id" className="mb-1 block text-sm font-semibold">{d('adr_division')}</label>
           <select id="division_id" name="division_id" value={div} required={required}
-            onChange={(e) => { setDiv(e.target.value); setDist('') }} className="field">
+            onChange={(e) => { setDiv(e.target.value); setDist(''); onDistrictChange?.('') }} className="field">
             <option value="">{d('adr_choose')}</option>
             {divisions.map((x) => <option key={x.id} value={x.id}>{name(x)}</option>)}
           </select>
@@ -35,7 +36,7 @@ export default function AddressFields({ dict, lang, divisions, districts, defaul
         <div>
           <label htmlFor="district_id" className="mb-1 block text-sm font-semibold">{d('adr_district')}</label>
           <select id="district_id" name="district_id" value={dist} required={required} disabled={!div}
-            onChange={(e) => setDist(e.target.value)} className="field">
+            onChange={(e) => { setDist(e.target.value); onDistrictChange?.(e.target.value) }} className="field">
             <option value="">{d('adr_choose')}</option>
             {list.map((x) => <option key={x.id} value={x.id}>{name(x)}</option>)}
           </select>
