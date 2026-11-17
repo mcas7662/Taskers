@@ -11,6 +11,7 @@ const TONE: Record<string, string> = {
   awaiting_confirmation: 'bg-marigold text-ink',
   completed: 'bg-brand-dark text-white',
   cancelled: 'bg-line text-muted',
+  expired: 'bg-line text-muted',
 }
 
 export default async function StatusBadge({ status }: { status: string }) {

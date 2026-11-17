@@ -1,7 +1,8 @@
 // taskers/components/PostTaskForm.tsx
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useState } from 'react'
+import { useFormAction } from '@/lib/use-form-action'
 import TaskLocationPicker from './TaskLocationPicker'
 import AddressFields from './AddressFields'
 import type { PostState } from '@/app/post/actions'
@@ -26,7 +27,7 @@ const CUSTOM = 'custom'
 
 export default function PostTaskForm({ action, dict, lang, categories, divisions, districts, districtRefs, otherCategoryId }: Props) {
   const d = (k: string) => dict[k] ?? k
-  const [state, formAction, pending] = useActionState(action, undefined)
+  const { state, formAction, pending, onSubmit } = useFormAction(action, undefined)
   const [cat, setCat] = useState('')
   const [districtId, setDistrictId] = useState('')
   const [area, setArea] = useState<'urban' | 'rural'>('urban')
@@ -38,7 +39,7 @@ export default function PostTaskForm({ action, dict, lang, categories, divisions
   const fmt = (n: number) => '৳' + n.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US')
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} onSubmit={onSubmit} className="space-y-6">
       <section className="space-y-4">
         <div>
           <label htmlFor="category_choice" className="mb-1 block text-sm font-semibold">{d('post_category')}</label>

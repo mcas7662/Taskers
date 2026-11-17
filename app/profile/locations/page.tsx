@@ -9,6 +9,7 @@ import type { District, Division } from '@/lib/types'
 import LocationForm from '@/components/LocationForm'
 import DeleteLocationButton from '@/components/DeleteLocationButton'
 import { addLocation, deleteLocation } from './actions'
+import { num } from '@/lib/format'
 
 export const metadata: Metadata = { title: 'Saved places' }
 
@@ -48,7 +49,7 @@ export default async function SavedLocationsPage() {
         <h1 className="text-3xl font-bold">{t('locationsTitle')}</h1>
         <p className="mt-2 text-muted">{t('locationsIntro')}</p>
         <p className="mt-2 font-semibold">
-          {list.length.toLocaleString()} / {MAX} {t('locationsUsed')}
+          {num(list.length, locale)} / {num(MAX, locale)} {t('locationsUsed')}
         </p>
       </header>
 

@@ -1,0 +1,65 @@
+# Taskers — এই আপডেটে কী বদলেছে
+
+কোনো পরিবর্তন commit করা হয়নি। `git status` / `git diff` দিয়ে সব দেখে নিতে পারবেন, পছন্দ হলে নিজে commit করবেন।
+Supabase ডাটাবেসে কোনো পরিবর্তন লাগবে না — নতুন migration নেই।
+
+## ১. নিরাপত্তা ও dependency
+
+| কী | আগে | এখন | কেন |
+|---|---|---|---|
+| `zod` | 3.25 | 4.6.7 | 3.x-এ একটা high-severity bug (বড় array দিয়ে server-এর memory শেষ করা যায়)। `sendInvites`-এ user-এর পাঠানো array zod দিয়েই চেক হয়। কোডে কিছু বদলাতে হয়নি। |
+| `next` | 15.5.28 | 15.5.29 | 15.x লাইনের সর্বশেষ patch |
+| Next-এর ভেতরের `postcss` | 8.4.31 | 8.5.31 (`overrides` দিয়ে) | পুরনো postcss-এ known vulnerability ছিল। এখন `npm audit` → **0 vulnerabilities** |
+
+- `lib/utils.ts` → `safeNext()` আরও শক্ত করা হয়েছে: `/\t/evil.com` ধরনের ট্রিক (tab/newline দিয়ে অন্য সাইটে redirect) এখন আটকে যায়।
+- `next.config.mjs` → `Strict-Transport-Security` header যোগ (শুধু https সাইটে কাজ করে, localhost-এ কিছু হয় না)।
+- `app/robots.ts` (নতুন) → search engine শুধু হোম/লগইন/সাইনআপ দেখবে; chat, admin, profile ইত্যাদি crawl করবে না।
+
+## ২. বাগ ফিক্স
+
+- **ফর্মে ভুল হলে লেখা সব মুছে যেত।** React 19 প্রতিটা `<form action>` submit-এর পর ফর্ম খালি করে দেয়, error হলেও। ফলে "কাজ দিন" ফর্মে একটা ভুলেই শিরোনাম, বিবরণ, জায়গা সব আবার লিখতে হতো; লগইনে ভুল পাসওয়ার্ড দিলে ইমেইলও মুছে যেত।
+  নতুন `lib/use-form-action.ts` hook দিয়ে `PostTaskForm`, `AuthForm`, `LocationForm` ঠিক করা হয়েছে — এখন error হলে লেখা থেকে যায়।
+- **সেভ করা জায়গা যোগ করার পর ম্যাপের পিন/স্থানাঙ্ক থেকে যেত** — এখন সফলভাবে সেভ হলে পুরো ফর্ম খালি হয়।
+- **মেয়াদ শেষ হওয়া কাজ "বাতিল" দেখাত** (task পেজে) আর "আমার কাজ" লিস্টে "খোলা" দেখাত। এখন দুই জায়গায় "মেয়াদ শেষ" দেখায়।
+- Chat পেজ: `completion_proof_paths` খালি (null) হলে পেজ crash করতে পারত; duration `0` হলে স্ক্রিনে "0" ভেসে উঠত — দুটোই ঠিক।
+- Task/chat পেজ: কোনো profile লুকানো/মুছে ফেলা হলে (`tasker`/`poster` null) পেজ crash করত — এখন "—" দেখায়।
+- URL-এ অচেনা `?ok=...` থাকলে খালি সবুজ বক্স দেখাত — এখন দেখায় না।
+- Payment/completion ছবি upload করে তারপর ✕ চাপলে ছবিটা storage-এ পড়ে থাকত — এখন মুছে দেওয়ার চেষ্টা করে (storage policy অনুমতি না দিলে চুপচাপ ছেড়ে দেয়)। Preview-এর memory-ও ছেড়ে দেয়।
+- Messages পেজ: অনেক মেসেজওয়ালা একটা chat বাকি chat-গুলোর "শেষ মেসেজ" ঢেকে দিতে পারত (মোট ৩০০ সীমা) — এখন conversation সংখ্যা অনুযায়ী সীমা বাড়ে।
+- Saved places পেজে "২ / ৩" সংখ্যা বাংলায় দেখায়; TaskCard-এ রিভিউ সংখ্যাও।
+- Header-এ `.single()` → `.maybeSingle()` (profile row না থাকলে অকারণে error log হতো)।
+
+## ৩. লগইন / সাইনআপ আরও পরিষ্কার
+
+- আগে সব ভুলে একই মেসেজ ("অ্যাকাউন্ট খোলা যায়নি")। এখন আলাদা করে বলে: বয়স ১৮-র কম, পাসওয়ার্ড দুর্বল, নাম/ইমেইল ভুল, ইমেইল আগেই আছে, ইমেইল এখনও confirm হয়নি, বেশিবার চেষ্টা (rate limit)।
+- লগইন করা অবস্থায় `/login` বা `/signup`-এ গেলে সরাসরি হোমে (বা `?next=` পেজে) পাঠায়।
+- লগইন না থাকলে `/tasks?tab=doing`-এর মতো পেজে গেলে, লগইনের পর query সহ একই পেজে ফেরত আসে।
+- `/auth/callback`: `?token_hash=&type=` স্টাইলের ইমেইল লিংকও এখন কাজ করে; লিংক মেয়াদোত্তীর্ণ হলে লগইন পেজে কারণসহ মেসেজ দেখায়।
+- Confirmation ইমেইলের লিংক এখন `NEXT_PUBLIC_SITE_URL` থেকে বানানো হয় (আগে browser-এর `Origin` header থেকে)। **`.env.local` আর Vercel-এ এটা সেট করুন** (`.env.example` দেখুন)। সেট না করলে আগের মতোই চলবে।
+
+## ৪. নতুন পেজ
+
+- `app/not-found.tsx` — বাংলা/ইংরেজি ৪০৪ পেজ।
+- `app/error.tsx` — কোনো পেজ crash করলে সাদা স্ক্রিনের বদলে "আবার চেষ্টা করুন" বোতাম।
+
+## ৫. পরিষ্কার-পরিচ্ছন্নতা
+
+- রুটে থাকা অপ্রয়োজনীয় `Taskers` ফাইল (শুধু একটা খালি লাইন) মুছে ফেলা হয়েছে।
+- `node_modules`, `.next`, `tsconfig.tsbuildinfo` zip-এ রাখা হয়নি (এগুলো `npm install` / build-এ আবার তৈরি হয়)।
+- README আর `.env.example`-এ port `3000` → `3001` (আপনার `npm run dev` আসলে 3001-এ চলে)।
+- `package.json`-এ `engines.node >= 18.18`।
+
+## যাচাই
+
+- `npm run typecheck` ✔, `next build` ✔ (১৭টা route), `npm audit` ✔ 0
+- Plus Code / স্থানাঙ্ক parser, `safeNext`, আর zod 4-এর আচরণ আলাদা test script দিয়ে চেক করা হয়েছে।
+- লাইভ Supabase-এর সাথে চালিয়ে দেখা হয়নি — লগইন, কাজ পোস্ট, chat, ছবি upload একবার নিজে চালিয়ে দেখে নিন।
+
+## যেগুলো করিনি (আপনার সিদ্ধান্ত দরকার)
+
+1. **হোম পেজের "আপনার কাছের কাজ"** — কোড লেভেলে সব খোলা কাজ (৫০টা) আনে, দূরত্ব দিয়ে ফিল্টার করে না। RLS যদি শুধু কাছের/invite করা কাজ দেখায় তাহলে ঠিক আছে; না হলে একটা `nearby_tasks` RPC বানানো উচিত।
+2. **Google Maps `Marker`** deprecated (এখনও চলে)। `AdvancedMarkerElement`-এ যেতে Google Cloud-এ একটা Map ID লাগবে।
+3. **Content-Security-Policy** header দেওয়া হয়নি — Google Maps, Supabase realtime, Nominatim সব allow করতে হবে, live-এ test না করে দিলে সাইট ভেঙে যেতে পারে।
+4. **ESLint** সেটআপ নেই (কোডে `eslint-disable` কমেন্ট আছে কিন্তু eslint install করা নেই)।
+5. `@supabase/ssr` 0.5.2 → নতুন 0.12.x আছে; নিরাপত্তা সমস্যা নেই, তবে আপগ্রেড করলে live-এ auth test করে নিতে হবে।
+6. Next.js 16 — বড় ভার্সন পরিবর্তন, আলাদা করে করাই ভালো।

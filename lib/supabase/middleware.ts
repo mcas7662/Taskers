@@ -1,6 +1,7 @@
 // taskers/lib/supabase/middleware.ts
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeNext } from '@/lib/utils'
 
 const PROTECTED = ['/profile', '/post', '/tasks', '/messages', '/task', '/chat', '/notifications', '/admin', '/u']
 
@@ -35,8 +36,16 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.search = ''
-    url.searchParams.set('next', path)
+    // keep the query string too (e.g. /tasks?tab=doing) so the person lands back on the same view
+    url.searchParams.set('next', path + request.nextUrl.search)
     return NextResponse.redirect(url)
+  }
+  // already logged in: the login / signup pages make no sense, send them on
+  if (user && (path === '/login' || path === '/signup')) {
+    const redirect = NextResponse.redirect(new URL(safeNext(request.nextUrl.searchParams.get('next')), request.url))
+    // carry over any refreshed session cookies
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    return redirect
   }
   return response
 }

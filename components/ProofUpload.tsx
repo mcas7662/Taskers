@@ -1,7 +1,7 @@
 // taskers/components/ProofUpload.tsx
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Camera, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -28,6 +28,17 @@ export default function ProofUpload({ assignmentId, kind, max, dict }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // free the preview images when the component goes away
+  const previews = useRef<string[]>([])
+  useEffect(() => () => previews.current.forEach((u) => URL.revokeObjectURL(u)), [])
+
+  function remove(it: Item) {
+    setItems((p) => p.filter((x) => x.path !== it.path))
+    URL.revokeObjectURL(it.preview)
+    // best effort: delete the unused photo from storage (ignored if the storage policy does not allow it)
+    void createClient().storage.from('task-proofs').remove([it.path]).catch(() => {})
+  }
+
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []).slice(0, max - items.length)
     e.target.value = ''
@@ -42,7 +53,9 @@ export default function ProofUpload({ assignmentId, kind, max, dict }: Props) {
         const path = `${assignmentId}/${kind}/${crypto.randomUUID()}.jpg`
         const { error: upErr } = await supabase.storage.from('task-proofs').upload(path, blob, { contentType: 'image/jpeg', upsert: false })
         if (upErr) throw upErr
-        added.push({ path, preview: URL.createObjectURL(blob) })
+        const preview = URL.createObjectURL(blob)
+        previews.current.push(preview)
+        added.push({ path, preview })
       } catch {
         setError(d('up_failed'))
       }
@@ -59,7 +72,7 @@ export default function ProofUpload({ assignmentId, kind, max, dict }: Props) {
           <div key={it.path} className="relative size-24 border border-line bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={it.preview} alt="" className="size-full object-cover" />
-            <button type="button" aria-label={d('up_remove')} onClick={() => setItems((p) => p.filter((x) => x.path !== it.path))}
+            <button type="button" aria-label={d('up_remove')} onClick={() => remove(it)}
               className="absolute -right-2 -top-2 grid size-7 place-items-center rounded-full bg-danger text-white">
               <X size={16} aria-hidden />
             </button>

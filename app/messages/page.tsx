@@ -37,7 +37,8 @@ export default async function MessagesPage() {
       .select('assignment_id, body, kind, sys_key, created_at')
       .in('assignment_id', rows.map((r) => r.id))
       .order('id', { ascending: false })
-      .limit(300)
+      // newest messages first; a busy chat could push quieter ones out of a small window, so scale it
+      .limit(Math.min(2000, rows.length * 30))
     for (const m of msgs ?? []) if (!last.has(m.assignment_id)) last.set(m.assignment_id, m as any)
   }
 

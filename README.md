@@ -18,7 +18,7 @@ Not built yet: phone OTP, NID verification, web push (in-app notifications only)
 ```bash
 npm install
 cp .env.example .env.local
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3001
 npm run typecheck
 ```
 
@@ -29,7 +29,10 @@ Project ref: `niqvzebaymfrnmsqbksc`. The schema was applied as migration `tasker
 To keep SQL in git: `npx supabase login && npx supabase link --project-ref niqvzebaymfrnmsqbksc && npx supabase db pull`.
 
 In the Supabase dashboard (Authentication > URL Configuration) set Site URL to your deployed URL
-and add `http://localhost:3000/auth/callback` and `<your-url>/auth/callback` to Redirect URLs.
+and add `http://localhost:3001/auth/callback` and `<your-url>/auth/callback` to Redirect URLs.
+Set `NEXT_PUBLIC_SITE_URL` (in `.env.local` and on the host, e.g. Vercel) to the same address, so the confirmation
+email always links back to the right site. If you want people sent back to the page they were on after confirming,
+allow the callback with a query string too, e.g. `https://your-url/auth/callback**`.
 If email confirmation is on, users must click the emailed link before they can log in.
 
 ## Make yourself admin (once)
@@ -53,3 +56,9 @@ Then open Profile > Reports.
 Posters do not use GPS or a map. They paste what Google Maps gives them (coordinates, a Plus Code like `H9MV+4W5`, or a Maps link) into one box;
 `lib/location-parse.ts` reads it (short Plus Codes use the chosen district's `bd_districts.lat/lng` as reference). Only division, district and upazila are asked.
 "Other" in the task type asks for a typed type (`tasks.custom_category`). Migration: `supabase/migrations/20261030000000_post_location_paste_and_custom_category.sql` (already applied).
+
+## Changes in this version
+
+See `CHANGES.md` (in Bangla) for the list of fixes: dependency security updates (zod 4, Next.js patch, PostCSS),
+forms that no longer clear themselves after an error, clearer login/signup errors, expired-task status,
+404/error pages, robots.txt, and small safety fixes.

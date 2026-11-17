@@ -54,7 +54,7 @@ export default async function ChatPage({
   const isPoster = a.poster_id === user.id
   const isTasker = a.tasker_id === user.id
   const party = isPoster || isTasker // otherwise this is an admin reading a reported conversation
-  const other = isPoster ? a.tasker : a.poster
+  const other = (isPoster ? a.tasker : a.poster) ?? { id: isPoster ? a.tasker_id : a.poster_id, full_name: '—', rating_count: 0, rating_avg: 0 }
   const total = a.total_amount
 
   const [{ data: msgs }, { data: reviews }, { data: myReports }] = await Promise.all([
@@ -99,7 +99,7 @@ export default async function ChatPage({
         <Link href={`/task/${a.task_id}`} className="text-sm text-muted underline underline-offset-2">{a.task?.place_name}</Link>
       </header>
 
-      {sp.ok && <p role="status" className="rounded-md bg-brand-soft px-3 py-2 text-sm text-brand-dark">{t(`ok_${sp.ok}` as TKey)}</p>}
+      {sp.ok && t(`ok_${sp.ok}` as TKey) && <p role="status" className="rounded-md bg-brand-soft px-3 py-2 text-sm text-brand-dark">{t(`ok_${sp.ok}` as TKey)}</p>}
       {errMsg && <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">{errMsg}</p>}
       {!party && <p className="border-l-4 border-marigold bg-marigold-soft p-3 text-sm">{t('deal_adminView')}</p>}
 
@@ -108,7 +108,7 @@ export default async function ChatPage({
         <div className="flex justify-between py-2"><dt>{t('deal_taskerEarns')}</dt><dd className="font-bold">{taka(a.agreed_fee, locale)}</dd></div>
         <div className="flex justify-between py-2 text-muted"><dt>{t('deal_expense')}{a.expense_note ? ` (${a.expense_note})` : ''}</dt><dd>{taka(a.expense_amount, locale)}</dd></div>
         <div className="flex justify-between py-2 text-base font-bold"><dt>{t('deal_total')}</dt><dd>{taka(total, locale)}</dd></div>
-        {a.duration_minutes && <div className="flex justify-between py-2"><dt>{t('deal_time')}</dt><dd>{fmtDuration(a.duration_minutes, locale)}</dd></div>}
+        {a.duration_minutes != null && a.duration_minutes > 0 && <div className="flex justify-between py-2"><dt>{t('deal_time')}</dt><dd>{fmtDuration(a.duration_minutes, locale)}</dd></div>}
       </dl>
 
       {/* ---------- stage panel ---------- */}
@@ -277,7 +277,7 @@ export default async function ChatPage({
           <h2 className={h}><CheckCircle2 size={20} aria-hidden /> {t('deal_doneReview')}</h2>
           {isPoster ? <p className="text-sm">{t('deal_confirmBody')}</p> : <p className="text-sm">{t('deal_waitingConfirm')}</p>}
           <div className="grid grid-cols-2 gap-2">
-            {a.completion_proof_paths.map((p) => signed.get(p) && (
+            {(a.completion_proof_paths ?? []).map((p) => signed.get(p) && (
               <a key={p} href={signed.get(p)} target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={signed.get(p)} alt={t('deal_proof')} className="h-40 w-full border border-line object-cover" />

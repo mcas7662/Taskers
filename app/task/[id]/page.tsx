@@ -67,12 +67,12 @@ export default async function TaskPage({
       </Link>
 
       {sp.new && <p role="status" className="rounded-md bg-brand-soft px-3 py-2 text-sm text-brand-dark">{t('task_posted')}</p>}
-      {sp.ok && <p role="status" className="rounded-md bg-brand-soft px-3 py-2 text-sm text-brand-dark">{t(`task_ok_${sp.ok}` as TKey)}</p>}
+      {sp.ok && t(`task_ok_${sp.ok}` as TKey) && <p role="status" className="rounded-md bg-brand-soft px-3 py-2 text-sm text-brand-dark">{t(`task_ok_${sp.ok}` as TKey)}</p>}
       {errMsg && <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">{errMsg}</p>}
 
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={expired ? 'cancelled' : task.status} />
+          <StatusBadge status={expired ? 'expired' : task.status} />
           {(task.custom_category || cat) && <span className="text-sm font-semibold text-brand">{task.custom_category || (locale === 'bn' ? cat.name_bn : cat.name_en)}</span>}
         </div>
         <h1 className="text-3xl font-bold leading-tight">{task.title}</h1>
@@ -197,7 +197,7 @@ export default async function TaskPage({
             <p className="border border-dashed border-line bg-surface px-4 py-6 text-center text-muted">{t('task_noOffers')}</p>
           ) : (
             <ul className="space-y-3">
-              {(offers as any[]).map((o) => (
+              {(offers as any[]).map((raw) => ({ ...raw, tasker: raw.tasker ?? { id: raw.tasker_id, full_name: '—', rating_avg: 0, rating_count: 0, tasks_completed_count: 0 } })).map((o) => (
                 <li key={o.id} className="space-y-2 border border-line bg-surface p-4">
                   <div className="flex items-start justify-between gap-3">
                     <Link href={`/u/${o.tasker.id}`} className="min-w-0">

@@ -2,13 +2,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState } from 'react'
+import { useFormAction } from '@/lib/use-form-action'
 import type { FormState } from '@/app/auth/actions'
 
 type Props = {
   mode: 'login' | 'signup'
   action: (prev: FormState, formData: FormData) => Promise<FormState>
   next?: string
+  /** e.g. "the email link has expired" after /auth/callback fails */
+  notice?: string
   labels: {
     title: string
     submit: string
@@ -24,13 +26,13 @@ type Props = {
   }
 }
 
-export default function AuthForm({ mode, action, next, labels }: Props) {
-  const [state, formAction, pending] = useActionState(action, undefined)
+export default function AuthForm({ mode, action, next, notice, labels }: Props) {
+  const { state, formAction, pending, onSubmit } = useFormAction(action, undefined)
 
   return (
     <div className="mx-auto max-w-md">
       <h1 className="mb-6 text-3xl font-bold">{labels.title}</h1>
-      <form action={formAction} className="space-y-4">
+      <form action={formAction} onSubmit={onSubmit} className="space-y-4">
         {next && <input type="hidden" name="next" value={next} />}
         {mode === 'signup' && (
           <div>
@@ -51,7 +53,7 @@ export default function AuthForm({ mode, action, next, labels }: Props) {
           <label htmlFor="email" className="mb-1 block text-sm font-semibold">
             {labels.email}
           </label>
-          <input id="email" name="email" type="email" required autoComplete="email" className="field" />
+          <input id="email" name="email" type="email" required maxLength={254} autoComplete="email" inputMode="email" className="field" />
         </div>
         <div>
           <label htmlFor="password" className="mb-1 block text-sm font-semibold">
@@ -63,12 +65,18 @@ export default function AuthForm({ mode, action, next, labels }: Props) {
             type="password"
             required
             minLength={mode === 'signup' ? 8 : undefined}
+            maxLength={200}
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             className="field"
           />
           {labels.passwordHint && <p className="mt-1 text-sm text-muted">{labels.passwordHint}</p>}
         </div>
 
+        {notice && !state && (
+          <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+            {notice}
+          </p>
+        )}
         {state?.error && (
           <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
             {state.error}

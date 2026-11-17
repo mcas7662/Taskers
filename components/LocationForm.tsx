@@ -1,7 +1,8 @@
 // taskers/components/LocationForm.tsx
 'use client'
 
-import { useActionState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useFormAction } from '@/lib/use-form-action'
 import LocationPicker from './LocationPicker'
 import AddressFields from './AddressFields'
 import type { LocationState } from '@/app/profile/locations/actions'
@@ -18,15 +19,20 @@ type Props = {
 
 export default function LocationForm({ action, dict, lang, options, divisions, districts }: Props) {
   const d = (k: string) => dict[k] ?? k
-  const [state, formAction, pending] = useActionState(action, undefined)
+  const { state, formAction, pending, onSubmit } = useFormAction(action, undefined)
   const formRef = useRef<HTMLFormElement>(null)
 
+  // after a successful save, clear the form (the picker keeps its own state, so remount it)
+  const [round, setRound] = useState(0)
   useEffect(() => {
-    if (state?.ok) formRef.current?.reset()
+    if (state?.ok) {
+      formRef.current?.reset()
+      setRound((r) => r + 1)
+    }
   }, [state])
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-4 border border-line bg-surface p-4">
+    <form ref={formRef} action={formAction} onSubmit={onSubmit} className="space-y-4 border border-line bg-surface p-4">
       <h2 className="text-lg font-bold">{d('sp_addLocation')}</h2>
 
       <div>
@@ -44,8 +50,8 @@ export default function LocationForm({ action, dict, lang, options, divisions, d
         <input id="locality_name" name="locality_name" maxLength={120} className="field" />
       </div>
 
-      <LocationPicker dict={dict} lang={lang} withPlaceName={false} />
-      <AddressFields dict={dict} lang={lang} divisions={divisions} districts={districts} withDetail={false} />
+      <LocationPicker key={`p${round}`} dict={dict} lang={lang} withPlaceName={false} />
+      <AddressFields key={`a${round}`} dict={dict} lang={lang} divisions={divisions} districts={districts} withDetail={false} />
       <p className="text-sm text-muted">{d('sp_privacyNote')}</p>
 
       {state?.error && <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">{state.error}</p>}

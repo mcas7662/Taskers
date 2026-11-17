@@ -19,8 +19,8 @@ export default async function Header() {
   if (user) {
     const [{ count }, { data: prof }, { data: priv }] = await Promise.all([
       supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
-      supabase.from('profiles').select('full_name, account_status').eq('id', user.id).single(),
-      supabase.from('profile_private').select('date_of_birth').eq('user_id', user.id).single(),
+      supabase.from('profiles').select('full_name, account_status').eq('id', user.id).maybeSingle(),
+      supabase.from('profile_private').select('date_of_birth').eq('user_id', user.id).maybeSingle(),
     ])
     unread = count ?? 0
     suspended = prof?.account_status === 'suspended'

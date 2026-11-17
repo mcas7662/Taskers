@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { MapPin, Clock } from 'lucide-react'
 import { getLocale, getT, type TKey } from '@/lib/i18n'
-import { taka, timeAgo } from '@/lib/format'
+import { num, taka, timeAgo } from '@/lib/format'
 import StatusBadge from './StatusBadge'
 import Stars from './Stars'
 
@@ -15,6 +15,7 @@ export type TaskCardData = {
   expense_estimate: number
   status: string
   created_at: string
+  expires_at?: string | null
   custom_category?: string | null
   category?: { name_en: string; name_bn: string } | null
   poster?: { full_name: string; rating_avg: number; rating_count: number } | null
@@ -23,6 +24,8 @@ export type TaskCardData = {
 export default async function TaskCard({ task, badge, showStatus = false }: { task: TaskCardData; badge?: TKey; showStatus?: boolean }) {
   const t = await getT()
   const locale = await getLocale()
+  // an open task past its deadline is shown as expired, not open
+  const status = task.status === 'open' && task.expires_at && new Date(task.expires_at) <= new Date() ? 'expired' : task.status
   return (
     <li>
       <Link href={`/task/${task.id}`} className="block border border-line bg-surface p-4 active:bg-brand-soft">
@@ -47,9 +50,9 @@ export default async function TaskCard({ task, badge, showStatus = false }: { ta
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
           <span className="flex items-center gap-1"><Clock size={14} aria-hidden /> {timeAgo(task.created_at, locale)}</span>
           {task.poster && task.poster.rating_count > 0 && (
-            <span className="flex items-center gap-1"><Stars value={Number(task.poster.rating_avg)} size={13} /> ({task.poster.rating_count})</span>
+            <span className="flex items-center gap-1"><Stars value={Number(task.poster.rating_avg)} size={13} /> ({num(task.poster.rating_count, locale)})</span>
           )}
-          {showStatus && <StatusBadge status={task.status} />}
+          {showStatus && <StatusBadge status={status} />}
           {badge && <span className="rounded-full bg-marigold-soft px-2.5 py-0.5 text-xs font-semibold text-ink">{t(badge)}</span>}
         </div>
       </Link>
