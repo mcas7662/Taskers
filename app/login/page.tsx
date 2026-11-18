@@ -21,6 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         submit: t('login'),
         email: t('email'),
         password: t('password'),
+        forgot: t('forgotLink'),
         switchPrompt: t('noAccount'),
         switchLink: t('signup'),
         switchHref: safe !== '/' ? `/signup?next=${encodeURIComponent(safe)}` : '/signup',

@@ -59,16 +59,16 @@ export default async function Header() {
               </Link>
             )}
             <form action={toggleLocale}>
-              <button type="submit" className="rounded-md px-2 py-1.5 text-sm text-muted hover:text-ink">
+              <button type="submit" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-2 text-sm text-muted hover:text-ink">
                 {t('langSwitch')}
               </button>
             </form>
             {!user && (
               <>
-                <Link href="/login" className="rounded-md px-2 py-1.5 text-sm font-semibold text-brand">
+                <Link href="/login" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-3 text-sm font-semibold text-brand hover:bg-brand-soft">
                   {t('login')}
                 </Link>
-                <Link href="/signup" className="btn-primary hidden min-h-9 py-1.5 text-sm sm:inline-flex">
+                <Link href="/signup" className="btn-primary hidden min-h-11 py-1.5 text-sm sm:inline-flex">
                   {t('signup')}
                 </Link>
               </>

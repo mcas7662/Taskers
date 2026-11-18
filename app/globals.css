@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root { color-scheme: light; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
 body { @apply bg-bg text-ink antialiased; }
 
 :focus-visible { outline: 3px solid #F4B400; outline-offset: 2px; border-radius: 4px; }

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { MapPin, ChevronRight, ShieldAlert, Shield } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { adultCutoff, MIN_DOB } from '@/lib/age'
+import { NAME_PATTERN } from '@/lib/utils'
 import { getDict, getLocale, getT } from '@/lib/i18n'
 import AddressFields from '@/components/AddressFields'
 import type { District, Division } from '@/lib/types'
@@ -100,13 +102,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <label htmlFor="full_name" className="mb-1 block text-sm font-semibold">
             {t('fullName')}
           </label>
-          <input id="full_name" name="full_name" required minLength={2} maxLength={100} defaultValue={profile?.full_name ?? ''} className="field" />
+          <input id="full_name" name="full_name" required minLength={2} maxLength={100} pattern={NAME_PATTERN} title={t('errSignupName')} defaultValue={profile?.full_name ?? ''} className="field" />
         </div>
         <div>
           <label htmlFor="date_of_birth" className="mb-1 block text-sm font-semibold">
             {t('dob')}
           </label>
-          <input id="date_of_birth" name="date_of_birth" type="date" required={!priv?.date_of_birth} readOnly={!!priv?.date_of_birth} defaultValue={priv?.date_of_birth ?? ''} className="field read-only:bg-bg" />
+          <input id="date_of_birth" name="date_of_birth" type="date" min={MIN_DOB} max={adultCutoff()} required={!priv?.date_of_birth} readOnly={!!priv?.date_of_birth} defaultValue={priv?.date_of_birth ?? ''} className="field read-only:bg-bg" />
           <p className="mt-1 text-sm text-muted">{priv?.date_of_birth ? t('profile_dobLocked') : t('dobHint')}</p>
         </div>
 

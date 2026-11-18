@@ -4,6 +4,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { isAdultDob } from '@/lib/age'
 import { createClient } from '@/lib/supabase/server'
 
 const opt = (max: number) => z.string().trim().max(max).transform((v) => (v === '' ? null : v))
@@ -11,17 +12,7 @@ const optInt = z.preprocess((v) => (v === '' || v == null ? null : Number(v)), z
 
 const schema = z.object({
   full_name: z.string().trim().min(2).max(100),
-  date_of_birth: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .refine((d) => {
-      const born = Date.parse(d)
-      if (Number.isNaN(born)) return false
-      const min = new Date()
-      min.setFullYear(min.getFullYear() - 18)
-      return born <= min.getTime() && born > Date.parse('1900-01-01')
-    })
-    .nullable(),
+  date_of_birth: z.string().refine((d) => isAdultDob(d)).nullable(),
   division_id: optInt,
   district_id: optInt,
   upazila_name: opt(80),

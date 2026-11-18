@@ -16,3 +16,6 @@ export function safeNext(value: string | null | undefined): string {
     return '/'
   }
 }
+
+/** For <input pattern>: at least two non-space characters, so "   " is not accepted as a name. */
+export const NAME_PATTERN = '.*\\S.*\\S.*'

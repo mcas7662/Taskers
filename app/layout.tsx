@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Hind_Siliguri } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
+import Link from 'next/link'
 import { getLocale, getT } from '@/lib/i18n'
+import { siteUrl } from '@/lib/site'
 
 const font = Hind_Siliguri({
   subsets: ['bengali', 'latin'],
@@ -11,10 +13,28 @@ const font = Hind_Siliguri({
   variable: '--font-sans',
 })
 
-export const metadata: Metadata = {
-  title: { default: 'Taskers', template: '%s | Taskers' },
-  description: 'Small physical errands, done by people who are already nearby.',
-  applicationName: 'Taskers',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = await getT()
+  const description = t('metaDescription')
+  return {
+    metadataBase: new URL(siteUrl()),
+    title: { default: 'Taskers', template: '%s | Taskers' },
+    description,
+    applicationName: 'Taskers',
+    icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }], apple: '/icon.svg' },
+    openGraph: {
+      type: 'website',
+      siteName: 'Taskers',
+      title: 'Taskers',
+      description,
+      url: '/',
+      locale: locale === 'bn' ? 'bn_BD' : 'en_US',
+      alternateLocale: locale === 'bn' ? 'en_US' : 'bn_BD',
+      images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Taskers' }],
+    },
+    twitter: { card: 'summary_large_image', title: 'Taskers', description, images: ['/og.png'] },
+  }
 }
 
 export const viewport: Viewport = {
@@ -32,7 +52,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans">
         <Header />
         <main className="mx-auto min-h-[70vh] max-w-4xl px-4 pb-28 pt-6 md:pb-12">{children}</main>
-        <footer className="mx-auto max-w-4xl px-4 pb-24 text-sm text-muted md:pb-10">{t('footer')}</footer>
+        <footer className="mx-auto max-w-4xl space-y-2 px-4 pb-24 text-sm text-muted md:pb-10">
+          <p>{t('footer')}</p>
+          <p className="flex gap-4">
+            <Link href="/terms" className="inline-block py-2 underline underline-offset-2 hover:text-ink">{t('termsLink')}</Link>
+            <Link href="/privacy" className="inline-block py-2 underline underline-offset-2 hover:text-ink">{t('privacyLink')}</Link>
+          </p>
+        </footer>
       </body>
     </html>
   )

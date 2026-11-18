@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // browsers ask for /favicon.ico on their own; the logo is an SVG
+  async redirects() {
+    return [{ source: '/favicon.ico', destination: '/icon.svg', permanent: false }]
+  },
   async headers() {
     return [
       {
